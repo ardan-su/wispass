@@ -1,0 +1,10 @@
+node_modules/
+.env
+uploads/attractions/*.jpg
+uploads/attractions/*.png
+uploads/attractions/*.jpeg
+uploads/avatars/*.jpg
+uploads/avatars/*.png
+uploads/avatars/*.jpeg
+*.log
+.DS_Store

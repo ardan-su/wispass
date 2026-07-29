@@ -1,0 +1,418 @@
+/* ═══════════════════════════════════════════════════════════════
+   WisataPass – Mobile-First Layout
+   True mobile UI, not just a resized desktop
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ══════════════════════════════════════════════════════════════
+   BOTTOM NAVIGATION BAR  (≤ 768px)
+   ══════════════════════════════════════════════════════════════ */
+:root {
+  --bottom-nav-h: 62px;
+}
+
+.bottom-nav {
+  display: none; /* shown only on mobile via media query */
+  position: fixed; bottom: 0; left: 0; right: 0;
+  height: var(--bottom-nav-h);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  z-index: 500;
+  padding: 0 8px env(safe-area-inset-bottom, 0);
+  box-shadow: 0 -4px 20px rgba(0,0,0,.08);
+  transition: background var(--dur-lg) ease, border-color var(--dur-lg) ease;
+}
+[data-theme="dark"] .bottom-nav { box-shadow: 0 -4px 20px rgba(0,0,0,.3); }
+
+.bottom-nav-inner {
+  display: flex; align-items: center; justify-content: space-around;
+  height: 100%; max-width: 480px; margin: 0 auto;
+}
+
+.bottom-nav-item {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; flex: 1; padding: 6px 4px;
+  color: var(--text-tertiary); cursor: pointer;
+  border-radius: var(--radius); transition: color var(--dur-sm) ease;
+  position: relative; min-width: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.bottom-nav-item.active { color: var(--accent); }
+.bottom-nav-item svg { width: 22px; height: 22px; transition: transform var(--dur-md) var(--ease-spring); }
+.bottom-nav-item.active svg { transform: translateY(-2px) scale(1.12); }
+.bottom-nav-item:active svg { transform: scale(.88); }
+.bottom-nav-label {
+  font-size: .6rem; font-weight: 600; letter-spacing: .02em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 56px;
+}
+.bottom-nav-dot {
+  position: absolute; top: 6px; right: calc(50% - 14px);
+  width: 7px; height: 7px; border-radius: 50%; background: var(--danger);
+  border: 2px solid var(--surface); animation: wp-pop .3s var(--ease-spring);
+}
+/* Active indicator pill */
+.bottom-nav-item.active::before {
+  content: ''; position: absolute; top: 4px; left: 50%; transform: translateX(-50%);
+  width: 28px; height: 3px; background: var(--accent);
+  border-radius: 0 0 var(--radius-full) var(--radius-full);
+  animation: wp-fade-in var(--dur-sm) ease;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE LAYOUT  (≤ 768px)
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Show bottom nav, hide desktop sidebar */
+  .bottom-nav { display: block; }
+  .sidebar { display: none; }
+  .main-content { margin-left: 0 !important; }
+
+  /* Add padding for bottom nav */
+  .page-content {
+    padding: 14px 14px calc(var(--bottom-nav-h) + 14px + env(safe-area-inset-bottom, 0));
+  }
+
+  /* Topbar slim on mobile */
+  .topbar { padding: 0 14px; }
+  .topbar-title { font-size: .875rem; }
+  .sidebar-toggle { display: none; }
+
+  /* Full-width buttons on mobile */
+  .page-header-actions { width: 100%; }
+  .page-header-actions .btn { flex: 1; justify-content: center; }
+
+  /* Page header stacks */
+  .page-header { flex-direction: column; gap: 10px; align-items: flex-start; }
+
+  /* Typography scale down */
+  h2 { font-size: 1.25rem; }
+  .stat-value { font-size: 1.25rem; }
+
+  /* Two column stat grid on mobile */
+  .stat-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-card  { padding: 14px; gap: 10px; }
+  .stat-icon  { width: 36px; height: 36px; }
+  .stat-icon svg { width: 17px; height: 17px; }
+
+  /* Attraction grid – 2 columns on mobile, 1 on tiny */
+  .attractions-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .attraction-img, .attraction-img-wrap { height: 130px; }
+  .attraction-body { padding: 10px 12px 12px; }
+  .attraction-name { font-size: .8125rem; }
+  .price-val { font-size: .875rem; }
+
+  /* Auth card */
+  .auth-card { padding: 24px 18px; border-radius: var(--radius-lg); }
+
+  /* Filter bar stacks */
+  .filter-bar { flex-direction: column; align-items: stretch; gap: 8px; }
+  .filter-bar .form-control, .filter-bar .search-wrapper { max-width: 100% !important; width: 100%; }
+
+  /* Tabs scroll horizontally */
+  .tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab-btn { flex-shrink: 0; }
+
+  /* Cards full-width, less padding */
+  .card { padding: 14px; border-radius: var(--radius); }
+  .card-header { margin-bottom: 12px; padding-bottom: 10px; }
+
+  /* Modals full-screen on mobile */
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal-box {
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    max-width: 100% !important;
+    animation: wp-slide-up var(--dur-lg) var(--ease-spring);
+    max-height: 90vh; overflow-y: auto;
+  }
+  .modal-sm {
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    padding: 24px 20px;
+  }
+  .modal-footer { flex-direction: column-reverse; }
+  .modal-footer .btn { width: 100%; justify-content: center; }
+  .modal-actions { flex-direction: column; width: 100%; }
+  .modal-actions .btn { width: 100%; justify-content: center; }
+
+  /* Dropdowns – full width on mobile */
+  .dropdown-menu { position: fixed; left: 8px; right: 8px; top: auto; bottom: calc(var(--bottom-nav-h) + 8px); width: auto; min-width: unset; }
+  .topbar .dropdown-menu { bottom: auto; top: var(--header-h); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE TABLE → CARD TRANSFORM  (≤ 768px)
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Hide traditional table, show mobile cards */
+  .table-wrapper { border: none; border-radius: 0; background: transparent; box-shadow: none; }
+  .table-wrapper table  { display: block; min-width: unset; }
+  .table-wrapper thead  { display: none; }
+  .table-wrapper tbody  { display: flex; flex-direction: column; gap: 10px; }
+  .table-wrapper tbody tr {
+    display: grid; grid-template-columns: 1fr 1fr;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 12px 14px; gap: 6px 10px;
+    box-shadow: var(--shadow-sm);
+    animation: wp-fade-up var(--dur-lg) var(--ease-out) both;
+  }
+  .table-wrapper tbody tr:hover td { background: transparent; }
+  .table-wrapper tbody td {
+    display: flex; flex-direction: column; padding: 0;
+    font-size: .8125rem; border: none;
+  }
+  /* Each td gets a label from data-label attribute set by JS */
+  .table-wrapper tbody td::before {
+    content: attr(data-label);
+    font-size: .65rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .05em; color: var(--text-tertiary); margin-bottom: 2px;
+  }
+  /* Actions column spans full width */
+  .table-wrapper tbody td:last-child {
+    grid-column: 1 / -1; flex-direction: row; align-items: center;
+    padding-top: 8px; border-top: 1px solid var(--border-subtle); margin-top: 4px;
+  }
+  .table-wrapper tbody td:last-child::before { display: none; }
+  /* First column (main info) spans full row */
+  .table-wrapper tbody td:first-child { grid-column: 1 / -1; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SMALL MOBILE  (≤ 414px)
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 414px) {
+  .stat-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .attractions-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .page-content { padding: 10px 10px calc(var(--bottom-nav-h) + 10px); }
+  h2 { font-size: 1.125rem; }
+  .card { padding: 12px; }
+  .btn-xl { padding: 11px 20px; font-size: .9375rem; }
+  .ticket-body { flex-direction: column; gap: 10px; }
+  .qr-preview { width: 100%; max-width: 180px; height: auto; align-self: center; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   VERY SMALL  (≤ 375px)
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 375px) {
+  .stat-grid { grid-template-columns: 1fr 1fr; }
+  .attractions-grid { grid-template-columns: 1fr; }
+  .auth-card { padding: 20px 14px; }
+  .bottom-nav-label { display: none; }
+  .bottom-nav-item svg { width: 24px; height: 24px; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TWO-COLUMN GRIDS → SINGLE COLUMN  (≤ 768px)
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* All inline-style grids collapse */
+  [style*="grid-template-columns: 2fr 1fr"],
+  [style*="grid-template-columns: 1fr 1fr"],
+  [style*="grid-template-columns: 2fr 1fr;"],
+  [style*="grid-template-columns: 1fr 1fr;"],
+  [style*="grid-template-columns: 300px 1fr"],
+  [style*="grid-template-columns: 220px 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+  /* Sticky booking sidebar on mobile becomes regular block */
+  [style*="position:sticky"], [style*="position: sticky"] {
+    position: relative !important;
+    top: auto !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TOUCH OPTIMISATION
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Minimum 44px touch target */
+  .btn       { min-height: 40px; }
+  .btn-sm    { min-height: 34px; }
+  .nav-item  { min-height: 40px; }
+  .form-control { height: 42px; }
+  textarea.form-control { height: auto; }
+  select.form-control   { height: 42px; }
+
+  /* Remove hover effects on touch */
+  .card:hover, .stat-card:hover, .attraction-card:hover {
+    transform: none; box-shadow: var(--shadow-sm);
+  }
+  .btn:hover { transform: none; box-shadow: none; }
+
+  /* Tap highlight colour */
+  * { -webkit-tap-highlight-color: rgba(59,130,246,.08); }
+
+  /* Faster animations on mobile */
+  .stat-card, .attraction-card, .card, .ticket-card {
+    animation-duration: .22s !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TABLET  (769px – 1024px)
+   ══════════════════════════════════════════════════════════════ */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .bottom-nav { display: none; }
+  .stat-grid  { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .attractions-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+  .page-content { padding: 20px; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   REDUCED MOTION
+   ══════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration:        .01ms !important;
+    animation-iteration-count: 1     !important;
+    transition-duration:       .01ms !important;
+    scroll-behavior:           auto  !important;
+  }
+  .skeleton          { animation: none; background: var(--bg-secondary); }
+  .empty-icon        { animation: none; }
+  .wp-float          { animation: none; }
+  .loading-bar-fill  { animation: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DASHBOARD MOBILE LAYOUT
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Charts stack below stats */
+  #charts-row {
+    grid-template-columns: 1fr !important;
+  }
+  #charts-row canvas {
+    width: 100% !important;
+  }
+
+  /* Dashboard two-column grids stack */
+  #dashboard-content > div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Report tabs scroll */
+  .tabs { gap: 0; }
+
+  /* Topbar title truncate on small screens */
+  .topbar-title {
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 140px;
+  }
+
+  /* Floating action button for mobile primary action */
+  .mobile-fab {
+    position: fixed; bottom: calc(var(--bottom-nav-h) + 16px); right: 16px;
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 16px rgba(59,130,246,.45);
+    z-index: 400; transition: all var(--dur-md) var(--ease-spring);
+    animation: wp-pop .4s var(--ease-spring) both;
+  }
+  .mobile-fab:hover  { transform: scale(1.08); }
+  .mobile-fab:active { transform: scale(.93); }
+  .mobile-fab svg    { width: 22px; height: 22px; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE FORM IMPROVEMENTS
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* All form grids collapse to single column */
+  .card form > div[style*="grid-template-columns"],
+  .modal-body form > div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
+  .card form > div > .form-group[style*="grid-column"],
+  .modal-body .form-group[style*="grid-column"] {
+    grid-column: 1 !important;
+  }
+
+  /* Bigger touch targets on inputs */
+  .form-control { height: 44px; font-size: 1rem; padding: 10px 14px; }
+  textarea.form-control { height: auto; }
+  select.form-control   { height: 44px; }
+
+  /* Filter bar full-width inputs */
+  .filter-bar { flex-direction: column; }
+  .filter-bar > * { width: 100%; max-width: 100% !important; }
+  .filter-bar .search-wrapper { flex: unset; }
+
+  /* Booking flow steps vertical */
+  .booking-steps { flex-direction: column; }
+
+  /* Date picker full width */
+  input[type="date"], input[type="time"], input[type="datetime-local"] {
+    width: 100%; max-width: 100%;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE ATTRACTION DETAIL
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Gallery collapses to single image */
+  [style*="grid-template-columns: 2fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+  /* Hide secondary gallery images on mobile */
+  [style*="grid-template-rows: 1fr 1fr"] {
+    display: none !important;
+  }
+  /* Gallery image smaller on mobile */
+  [style*="height:380px"] { height: 220px !important; }
+  [style*="height: 380px"] { height: 220px !important; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE TICKET CARD
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .ticket-body { flex-direction: row; align-items: center; gap: 12px; }
+  .qr-preview  { width: 90px; height: 90px; }
+  .ticket-card { border-radius: var(--radius); }
+}
+@media (max-width: 414px) {
+  .ticket-body { flex-direction: column; align-items: flex-start; }
+  .qr-preview  { width: 100%; max-width: 160px; height: auto; align-self: center; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE AUTH
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .auth-page { align-items: flex-end; padding: 0; }
+  .auth-card {
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    padding: 28px 20px calc(20px + env(safe-area-inset-bottom, 0));
+    animation: wp-slide-up var(--dur-lg) var(--ease-spring);
+    min-height: 60vh; width: 100%; max-width: 100%;
+  }
+  .auth-page::before { top: 0; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE BOTTOM SAFE AREA
+   ══════════════════════════════════════════════════════════════ */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  @media (max-width: 768px) {
+    .bottom-nav {
+      padding-bottom: env(safe-area-inset-bottom);
+      height: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom));
+    }
+    .page-content {
+      padding-bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom) + 14px);
+    }
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   HIGH CONTRAST / ACCESSIBILITY
+   ══════════════════════════════════════════════════════════════ */
+@media (prefers-contrast: high) {
+  .card      { border-width: 2px; }
+  .btn       { border-width: 2px; }
+  .form-control { border-width: 2px; }
+  .badge     { border-width: 2px; }
+  .nav-item.active { border-left-width: 4px; }
+}

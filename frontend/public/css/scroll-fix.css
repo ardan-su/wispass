@@ -1,0 +1,251 @@
+/* ═══════════════════════════════════════════════════════════════
+   WisataPass – Scroll Fix
+   Loaded LAST so it wins over all other stylesheets.
+
+   ROOT CAUSES OF BLOCKED MOBILE SCROLL
+   ─────────────────────────────────────
+   1. fixes.css added:
+        html, body { overflow-x: hidden }
+      overflow-x: hidden on <html> creates an implicit block
+      formatting context and a scroll container on iOS Safari /
+      Android Chrome. This traps ALL scrolling — both x and y —
+      inside the html element. Body can no longer be the scroll
+      container, so the page appears frozen.
+
+   2. fixes.css added:
+        .main-content { min-height: 100vh }
+        .page-content { min-height: calc(100vh - var(--header-h)) }
+      These height locks clamp the layout to exactly the viewport.
+      The browser sees no overflow to scroll, so touch events
+      produce no movement.
+
+   3. fixes.css added:
+        .page-content { overflow-x: hidden }
+      An overflow: hidden on a flex/block child creates another
+      stacking context that captures scroll events before they
+      reach body on some mobile browsers.
+
+   4. mobile.css has the sidebar display:none but also sets:
+        .main-content { margin-left: 0 !important }
+      This is correct, but main-content still has min-height:100vh
+      from main.css which combined with display:flex creates a
+      height-locked container.
+
+   WHAT WE CHANGE
+   ──────────────
+   • html, body: use overflow-x:clip (not hidden). clip cuts
+     visually but does NOT create a scroll container — vertical
+     scroll is never blocked.
+   • Remove all height locks from .main-content and .page-content
+     on mobile so the document grows naturally.
+   • Switch .app-layout to display:block on mobile so the flex
+     row layout does not clamp height.
+   • Add -webkit-overflow-scrolling:touch for iOS momentum scroll.
+   • Add overscroll-behavior to prevent scroll bleed through modals.
+   • Keep bottom nav fixed; add correct padding-bottom to
+     .page-content so last content is never hidden under the bar.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Global: never block vertical scroll ─────────────────────── */
+html {
+  overflow-x: clip;    /* clips horizontally without blocking body scroll */
+  overflow-y: visible;
+  height: auto;
+}
+
+body {
+  overflow-x: clip;
+  overflow-y: visible; /* body must be free to scroll */
+  min-height: 100vh;
+  height: auto;
+  -webkit-overflow-scrolling: touch; /* iOS momentum scroll */
+  overscroll-behavior-x: none;       /* prevent horizontal swipe-back */
+}
+
+/* ── App shell: never trap height ────────────────────────────── */
+.app-layout {
+  overflow: visible;
+  height: auto;
+}
+
+/* ── Main content: no height lock ────────────────────────────── */
+.main-content {
+  overflow-x: clip;
+  overflow-y: visible;
+  height: auto;
+  /* keep min-height on desktop for full-height sidebar bg */
+  min-height: 100vh;
+}
+
+/* ── Page content: no overflow trap ─────────────────────────── */
+.page-content {
+  overflow-x: clip;
+  overflow-y: visible;
+  height: auto;
+  min-height: 0;
+}
+
+/* ── Auth page must also scroll ──────────────────────────────── */
+.auth-page {
+  overflow-x: clip;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  min-height: 100vh;
+  height: auto;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE  (≤ 768px)  — the critical zone
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* html + body: body is the sole scroll container */
+  html, body {
+    overflow-x: clip;
+    overflow-y: visible;
+    height: auto;
+    width: 100%;
+    max-width: 100%;        /* stop any child from stretching page */
+  }
+
+  /* Switch from flex row to block so flex doesn't clamp height */
+  .app-layout {
+    display: block;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  /* Main content fills full width, grows with content */
+  .main-content {
+    margin-left: 0 !important;
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 0;          /* no longer needs to fill viewport height */
+    overflow: visible;
+  }
+
+  /* Page content: padding clears the fixed topbar at top
+     and the fixed bottom nav at bottom */
+  .page-content {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    /* Top: nothing extra — topbar is sticky inside main-content */
+    padding-top: 0;
+    /* Bottom: clear fixed bottom nav + iOS safe area + breathing room */
+    padding-bottom: calc(
+      var(--bottom-nav-h, 62px)
+      + env(safe-area-inset-bottom, 0px)
+      + 16px
+    ) !important;
+  }
+
+  /* Topbar is sticky so it scrolls with the page header */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    width: 100%;
+  }
+
+  /* Sidebar hidden on mobile — zero scroll impact */
+  .sidebar {
+    position: fixed;      /* keep it available for hamburger slide-in */
+    display: none;        /* hidden by default */
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    z-index: 200;
+  }
+  .sidebar.mobile-open {
+    display: flex;        /* shown when hamburger tapped */
+  }
+
+  /* Bottom nav stays fixed — content scrolls under it */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 500;
+    /* iOS safe area already handled in mobile.css */
+  }
+
+  /* Auth page on mobile: sheet slides up but body still scrolls */
+  .auth-page {
+    display: flex;
+    align-items: flex-end;
+    overflow-y: visible;
+    min-height: 100vh;
+    height: auto;
+    padding: 0;
+  }
+
+  .auth-card {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+    max-height: 95vh;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TOUCH ACTION — ensure native scroll gestures always work
+   ══════════════════════════════════════════════════════════════ */
+html, body,
+.main-content,
+.page-content,
+.auth-page {
+  touch-action: pan-y pinch-zoom;
+}
+
+/* Horizontal scroll containers: allow both axes */
+.table-wrapper {
+  touch-action: pan-x pan-y;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+.tabs {
+  touch-action: pan-x pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MODAL SCROLL ISOLATION
+   ══════════════════════════════════════════════════════════════ */
+.modal-overlay {
+  overscroll-behavior: contain; /* stop scroll bleeding through */
+  touch-action: pan-y;
+}
+
+.modal-box {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* When modal is open, lock body scroll (add .modal-open via JS if needed) */
+body.modal-open {
+  overflow: hidden;
+  touch-action: none;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SAFE AREA — iPhone notch / home indicator
+   ══════════════════════════════════════════════════════════════ */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  @media (max-width: 768px) {
+    .page-content {
+      padding-bottom: calc(
+        var(--bottom-nav-h, 62px)
+        + env(safe-area-inset-bottom, 0px)
+        + 16px
+      ) !important;
+    }
+  }
+}
