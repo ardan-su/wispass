@@ -79,10 +79,11 @@ const SiteModel = {
        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [id, name, slug, category, description,
        JSON.stringify(facilities || []),
-       location, city, province, mapsLink, latitude, longitude,
-       openTime, closeTime,
+       location || null, city || null, province || null,
+       mapsLink || null, latitude ?? null, longitude ?? null,
+       openTime || null, closeTime || null,
        JSON.stringify(openDays || ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']),
-       coverImage, isFeatured ? 1 : 0]
+       coverImage || null, isFeatured ? 1 : 0]
     );
     return this.findById(id);
   },
@@ -94,9 +95,11 @@ const SiteModel = {
                      'maps_link','latitude','longitude','open_time','close_time','open_days',
                      'cover_image','is_featured','is_active'];
     for (const [k, v] of Object.entries(fields)) {
+      if (v === undefined) continue;
       const col = k.replace(/([A-Z])/g, '_$1').toLowerCase();
       if (allowed.includes(col)) {
-        params.push(['facilities','open_days'].includes(col) ? JSON.stringify(v) : v);
+        const val = ['facilities','open_days'].includes(col) ? JSON.stringify(v) : (v ?? null);
+        params.push(val);
         sets.push(`${col} = ?`);
       }
     }

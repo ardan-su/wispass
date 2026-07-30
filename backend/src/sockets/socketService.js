@@ -65,7 +65,9 @@ function onBookingCancelled(booking) {
 }
 
 function onTicketUsed(ticket) {
-  emitToAdmins('ticket:used', ticket);
+  const eventName = ticket.status === 'used' ? 'ticket:used' : 'ticket:status_changed';
+  emitToAdmins(eventName, ticket);
+  emitToAdmins('ticket:used', ticket);          // always fire ticket:used for dashboard compat
   emitToUser(ticket.user_id, 'ticket:used', ticket);
   emitToAdmins('dashboard:refresh', { type: 'visitor' });
 }

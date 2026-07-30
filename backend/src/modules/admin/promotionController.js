@@ -12,7 +12,7 @@ const promotionController = {
       const { page, limit, offset } = getPagination(req.query);
       const { search, is_active } = req.query;
 
-      let where = 'WHERE p.deleted_at IS NULL';
+      let where = 'WHERE 1=1';
       const params = [];
       const countParams = [];
 
@@ -43,7 +43,7 @@ const promotionController = {
   async detail(req, res, next) {
     try {
       const rows = await query(
-        `SELECT * FROM promotions WHERE id = ? AND deleted_at IS NULL`, [req.params.id]
+        `SELECT * FROM promotions WHERE id = ?`, [req.params.id]
       );
       if (!rows.length) return error(res, 'Promotion not found.', 404);
       return success(res, { promotion: rows[0] });
@@ -53,10 +53,16 @@ const promotionController = {
   // POST /api/promotions
   async create(req, res, next) {
     try {
-      const {
-        code, name, description, discount_type, discount_value,
-        min_purchase, max_discount, usage_limit, valid_from, valid_until,
-      } = req.body;
+      const code          = req.body.code;
+      const name          = req.body.name;
+      const description   = req.body.description || '';
+      const discount_type = req.body.discount_type  || req.body.discountType;
+      const discount_value= req.body.discount_value != null ? req.body.discount_value : req.body.discountValue;
+      const min_purchase  = req.body.min_purchase   != null ? req.body.min_purchase   : (req.body.minPurchase  || 0);
+      const max_discount  = req.body.max_discount   != null ? req.body.max_discount   : (req.body.maxDiscount  || null);
+      const usage_limit   = req.body.usage_limit    != null ? req.body.usage_limit    : (req.body.usageLimit   || null);
+      const valid_from    = req.body.valid_from     || req.body.validFrom;
+      const valid_until   = req.body.valid_until    || req.body.validUntil;
 
       const id = uuid();
       await query(
@@ -79,7 +85,7 @@ const promotionController = {
       );
 
       await query(
-        `INSERT INTO audit_logs (id, user_id, action, entity_type, entity_id, ip_address, created_at)
+        `INSERT INTO audit_logs (id, user_id, action, module, entity_id, ip_address, created_at)
          VALUES (?, ?, 'promotion:create', 'promotions', ?, ?, NOW(3))`,
         [uuid(), req.user.id, id, req.ip]
       );
@@ -93,9 +99,18 @@ const promotionController = {
   async update(req, res, next) {
     try {
       const existing = await query(
-        `SELECT id FROM promotions WHERE id = ? AND deleted_at IS NULL`, [req.params.id]
+        `SELECT id FROM promotions WHERE id = ?`, [req.params.id]
       );
       if (!existing.length) return error(res, 'Promotion not found.', 404);
+
+      // Normalize camelCase → snake_case from frontend
+      if (req.body.discountType  !== undefined && req.body.discount_type  === undefined) req.body.discount_type  = req.body.discountType;
+      if (req.body.discountValue !== undefined && req.body.discount_value === undefined) req.body.discount_value = req.body.discountValue;
+      if (req.body.minPurchase   !== undefined && req.body.min_purchase   === undefined) req.body.min_purchase   = req.body.minPurchase;
+      if (req.body.maxDiscount   !== undefined && req.body.max_discount   === undefined) req.body.max_discount   = req.body.maxDiscount;
+      if (req.body.usageLimit    !== undefined && req.body.usage_limit    === undefined) req.body.usage_limit    = req.body.usageLimit;
+      if (req.body.validFrom     !== undefined && req.body.valid_from     === undefined) req.body.valid_from     = req.body.validFrom;
+      if (req.body.validUntil    !== undefined && req.body.valid_until    === undefined) req.body.valid_until    = req.body.validUntil;
 
       const allowed = [
         'code', 'name', 'description', 'discount_type', 'discount_value',
@@ -120,7 +135,7 @@ const promotionController = {
 
       await query(`UPDATE promotions SET ${sets.join(', ')} WHERE id = ?`, params);
       await query(
-        `INSERT INTO audit_logs (id, user_id, action, entity_type, entity_id, ip_address, created_at)
+        `INSERT INTO audit_logs (id, user_id, action, module, entity_id, ip_address, created_at)
          VALUES (?, ?, 'promotion:update', 'promotions', ?, ?, NOW(3))`,
         [uuid(), req.user.id, req.params.id, req.ip]
       );
@@ -134,13 +149,13 @@ const promotionController = {
   async remove(req, res, next) {
     try {
       const existing = await query(
-        `SELECT id FROM promotions WHERE id = ? AND deleted_at IS NULL`, [req.params.id]
+        `SELECT id FROM promotions WHERE id = ?`, [req.params.id]
       );
       if (!existing.length) return error(res, 'Promotion not found.', 404);
 
-      await query(`UPDATE promotions SET deleted_at = NOW(3) WHERE id = ?`, [req.params.id]);
+      await query(`UPDATE promotions SET is_active = 0 WHERE id = ?`, [req.params.id]);
       await query(
-        `INSERT INTO audit_logs (id, user_id, action, entity_type, entity_id, ip_address, created_at)
+        `INSERT INTO audit_logs (id, user_id, action, module, entity_id, ip_address, created_at)
          VALUES (?, ?, 'promotion:delete', 'promotions', ?, ?, NOW(3))`,
         [uuid(), req.user.id, req.params.id, req.ip]
       );
@@ -157,8 +172,7 @@ const promotionController = {
       const rows = await query(
         `SELECT * FROM promotions
          WHERE code = ? AND is_active = 1
-           AND valid_from <= NOW() AND valid_until >= NOW()
-           AND deleted_at IS NULL`,
+           AND valid_from <= NOW() AND valid_until >= NOW()`,
         [code.toUpperCase()]
       );
       if (!rows.length) return error(res, 'Invalid or expired promo code.', 404);

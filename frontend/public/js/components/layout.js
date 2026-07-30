@@ -80,6 +80,7 @@ const ADMIN_NAV = [
   { section: 'Management' },
   { icon: 'map-pin',           label: 'Attractions',    href: '#/admin/attractions' },
   { icon: 'clipboard-list',    label: 'Bookings',       href: '#/admin/bookings' },
+  { icon: 'ticket',            label: 'Tickets',        href: '#/admin/tickets' },
   { icon: 'users',             label: 'Customers',      href: '#/admin/customers' },
   { icon: 'tag',               label: 'Promotions',     href: '#/admin/promotions' },
   { section: 'Tools' },

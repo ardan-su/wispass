@@ -182,10 +182,10 @@ export default {
       if (!code) return;
       const subtotal = this.calcSubtotal();
       try {
-        const res    = await api.promotions.validateCode({ code, subtotal });
-        this._promo  = res.promotion;
+        const res    = await api.promotions.validateCode({ code, amount: subtotal });
+        this._promo  = { ...res.promotion, discount: res.discountAmount };
         msgEl.style.color = 'var(--success)';
-        msgEl.textContent = `✓ ${res.promotion.name} — saves ${formatIDR(res.promotion.discount)}`;
+        msgEl.textContent = `✓ ${res.promotion.name} — saves ${formatIDR(res.discountAmount)}`;
         this.updateSummary();
       } catch (err) {
         this._promo = null;

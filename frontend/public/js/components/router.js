@@ -27,6 +27,7 @@ const pages = {
   '/admin/customers/:id':    () => import('../admin/customerDetail.js'),
   '/admin/promotions':       () => import('../admin/promotions.js'),
   '/admin/reports':          () => import('../admin/reports.js'),
+  '/admin/tickets':          () => import('../admin/tickets.js'),
   '/admin/tickets/validate': () => import('../admin/validateTicket.js'),
   '/admin/qr':               () => import('../admin/qrManagement.js'),
   '/admin/qr/:id':           () => import('../admin/qrDetail.js'),

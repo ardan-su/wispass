@@ -70,17 +70,29 @@ const siteController = {
   // POST /api/attractions
   async create(req, res, next) {
     try {
-      const { name, category, description, facilities, location, city, province,
-              mapsLink, latitude, longitude, openTime, closeTime, openDays, isFeatured } = req.body;
+      const { name, category, description, location, city, province, isFeatured } = req.body;
+      const mapsLink   = req.body.mapsLink   || req.body.maps_link  || null;
+      const latitude   = req.body.latitude   != null ? req.body.latitude   : null;
+      const longitude  = req.body.longitude  != null ? req.body.longitude  : null;
+      const openTime   = req.body.openTime   || req.body.open_time  || null;
+      const closeTime  = req.body.closeTime  || req.body.close_time || null;
+      const openDays   = req.body.openDays   || req.body.open_days  || null;
+      // facilitiesRaw is comma-separated from the form
+      const facilitiesRaw = req.body.facilitiesRaw || req.body.facilities || '';
+      const facilities = Array.isArray(facilitiesRaw)
+        ? facilitiesRaw
+        : (typeof facilitiesRaw === 'string' && facilitiesRaw
+          ? facilitiesRaw.split(',').map(s => s.trim()).filter(Boolean)
+          : []);
       const id   = uuid();
       const slug = slugify(name) + '-' + id.substring(0, 8);
       const coverImage = req.file ? `/uploads/attractions/${req.file.filename}` : null;
 
       const site = await SiteModel.create({
         id, name, slug, category, description,
-        facilities: Array.isArray(facilities) ? facilities : (facilities ? JSON.parse(facilities) : []),
+        facilities,
         location, city, province, mapsLink, latitude, longitude, openTime, closeTime,
-        openDays: Array.isArray(openDays) ? openDays : (openDays ? JSON.parse(openDays) : undefined),
+        openDays: Array.isArray(openDays) ? openDays : (openDays ? JSON.parse(openDays) : null),
         coverImage, isFeatured: isFeatured === 'true' || isFeatured === true,
       });
 
@@ -97,6 +109,16 @@ const siteController = {
       if (req.file) fields.cover_image = `/uploads/attractions/${req.file.filename}`;
       if (fields.facilities && typeof fields.facilities === 'string') fields.facilities = JSON.parse(fields.facilities);
       if (fields.openDays && typeof fields.openDays === 'string') fields.open_days = JSON.parse(fields.openDays);
+      // Normalize camelCase to snake_case
+      if (fields.mapsLink   !== undefined) { fields.maps_link  = fields.mapsLink;   delete fields.mapsLink; }
+      if (fields.openTime   !== undefined) { fields.open_time  = fields.openTime;   delete fields.openTime; }
+      if (fields.closeTime  !== undefined) { fields.close_time = fields.closeTime;  delete fields.closeTime; }
+      if (fields.isFeatured !== undefined) { fields.is_featured = fields.isFeatured === 'true' || fields.isFeatured === true ? 1 : 0; delete fields.isFeatured; }
+      if (fields.isActive   !== undefined) { fields.is_active   = fields.isActive   === 'true' || fields.isActive   === true ? 1 : 0; delete fields.isActive; }
+      if (fields.facilitiesRaw !== undefined) {
+        fields.facilities = fields.facilitiesRaw.split(',').map(s => s.trim()).filter(Boolean);
+        delete fields.facilitiesRaw;
+      }
       const site = await SiteModel.update(req.params.id, fields);
       return success(res, { attraction: site }, 'Attraction updated successfully.');
     } catch (err) { next(err); }

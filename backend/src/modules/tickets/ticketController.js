@@ -111,6 +111,100 @@ const ticketController = {
       return success(res, { qrCode, ticketCode: ticket.ticket_code }, 'QR code regenerated.');
     } catch (err) { next(err); }
   },
+  // GET /api/tickets/admin/all  – admin view of all tickets across all customers
+  async adminList(req, res, next) {
+    try {
+      const { page, limit, offset } = getPagination(req.query);
+      const { search, status, siteId, dateFrom, dateTo, userId } = req.query;
+
+      let sql = `
+        SELECT t.id, t.ticket_code, t.status, t.visit_date, t.used_at,
+               t.expires_at, t.created_at, t.qr_code, t.qr_data,
+               u.id AS user_id, u.full_name AS customer_name, u.email AS customer_email,
+               ts.id AS site_id, ts.name AS attraction_name, ts.city, ts.cover_image,
+               tt.name AS ticket_type_name, tt.id AS ticket_type_id,
+               o.id AS order_id, o.booking_code
+        FROM tickets t
+        JOIN users u         ON u.id  = t.user_id
+        JOIN tourist_sites ts ON ts.id = t.site_id
+        JOIN ticket_types tt  ON tt.id = t.ticket_type_id
+        JOIN ticket_orders o  ON o.id  = t.order_id
+        WHERE 1=1`;
+      let cSql = `SELECT COUNT(*) AS total
+        FROM tickets t
+        JOIN users u         ON u.id  = t.user_id
+        JOIN tourist_sites ts ON ts.id = t.site_id
+        JOIN ticket_orders o  ON o.id  = t.order_id
+        WHERE 1=1`;
+      const params  = [];
+      const cParams = [];
+
+      function addCond(clause, ...vals) {
+        sql   += clause; params.push(...vals);
+        cSql  += clause; cParams.push(...vals);
+      }
+
+      if (search) {
+        const like = `%${search}%`;
+        addCond(` AND (t.ticket_code LIKE ? OR u.full_name LIKE ? OR u.email LIKE ? OR o.booking_code LIKE ?)`,
+          like, like, like, like);
+      }
+      if (status)   addCond(` AND t.status = ?`, status);
+      if (siteId)   addCond(` AND t.site_id = ?`, siteId);
+      if (userId)   addCond(` AND t.user_id = ?`, userId);
+      if (dateFrom) addCond(` AND t.visit_date >= ?`, dateFrom);
+      if (dateTo)   addCond(` AND t.visit_date <= ?`, dateTo);
+
+      const cr    = await query(cSql, cParams);
+      const total = parseInt(cr[0].total);
+
+      params.push(limit, offset);
+      sql += ` ORDER BY t.created_at DESC LIMIT ? OFFSET ?`;
+      const rows = await query(sql, params);
+
+      return res.json(paginate(rows, total, page, limit));
+    } catch (err) { next(err); }
+  },
+
+  // GET /api/tickets/admin/stats – summary counts per status
+  async adminStats(req, res, next) {
+    try {
+      const rows = await query(
+        `SELECT status, COUNT(*) AS count FROM tickets GROUP BY status`
+      );
+      const stats = { active: 0, used: 0, expired: 0, cancelled: 0, total: 0 };
+      rows.forEach(r => {
+        const s = r.status;
+        const n = parseInt(r.count);
+        if (stats[s] !== undefined) stats[s] = n;
+        stats.total += n;
+      });
+      // Today's used tickets
+      const todayRows = await query(
+        `SELECT COUNT(*) AS count FROM tickets WHERE status = 'used' AND DATE(used_at) = CURDATE()`
+      );
+      stats.used_today = parseInt(todayRows[0].count);
+      return success(res, { stats });
+    } catch (err) { next(err); }
+  },
+
+  // PUT /api/tickets/admin/:id/status – admin can change status (cancel/expire)
+  async adminUpdateStatus(req, res, next) {
+    try {
+      const { status } = req.body;
+      const allowed = ['cancelled', 'expired'];
+      if (!allowed.includes(status)) return error(res, `Status must be one of: ${allowed.join(', ')}.`, 400);
+
+      const ticket = await TicketModel.findById(req.params.id);
+      if (!ticket) return error(res, 'Ticket not found.', 404);
+      if (ticket.status === 'used') return error(res, 'Cannot change status of a used ticket.', 400);
+
+      const updated = await TicketModel.updateStatus(ticket.id, status);
+      socketSvc.onTicketUsed(updated); // reuse existing socket event to push status change
+
+      return success(res, { ticket: updated }, `Ticket marked as ${status}.`);
+    } catch (err) { next(err); }
+  },
 };
 
 module.exports = ticketController;

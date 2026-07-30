@@ -19,6 +19,7 @@ export const socket = {
 
   _init(token) {
     _socket = io({ auth: { token }, transports: ['websocket', 'polling'] });
+    window._socket = _socket;
 
     _socket.on('connect', () => console.log('Socket connected:', _socket.id));
     _socket.on('disconnect', () => console.log('Socket disconnected'));

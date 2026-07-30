@@ -3,7 +3,7 @@
  */
 const express = require('express');
 const { body, param } = require('express-validator');
-const { authenticate, requirePermission } = require('../../middleware/auth');
+const { authenticate, authorize } = require('../../middleware/auth');
 const validate = require('../../middleware/validate');
 const notificationController = require('./notificationController');
 
@@ -23,7 +23,7 @@ router.put('/:id/read',
 );
 
 router.post('/',
-  requirePermission('attraction:manage'),
+  authorize('owner', 'super_admin', 'admin'),
   [
     body('user_id').isUUID().withMessage('Valid user_id required'),
     body('title').notEmpty().isLength({ max: 255 }),

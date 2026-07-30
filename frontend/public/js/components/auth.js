@@ -27,7 +27,8 @@ export const auth = {
   },
 
   isAdmin() {
-    return this.getRole() === 'admin';
+    const adminRoles = ['admin', 'owner', 'super_admin', 'cashier', 'gate_officer', 'marketing', 'viewer'];
+    return adminRoles.includes(this.getRole());
   },
 
   isCustomer() {

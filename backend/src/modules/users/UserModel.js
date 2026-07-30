@@ -68,9 +68,12 @@ const UserModel = {
   },
 
   async updateProfile(id, { fullName, phone, avatar }) {
-    const sets  = ['full_name = ?', 'phone = ?'];
-    const params = [fullName, phone];
-    if (avatar !== undefined) { sets.push('avatar = ?'); params.push(avatar); }
+    const sets   = [];
+    const params = [];
+    if (fullName !== undefined) { sets.push('full_name = ?'); params.push(fullName ?? null); }
+    if (phone    !== undefined) { sets.push('phone = ?');     params.push(phone ?? null); }
+    if (avatar   !== undefined) { sets.push('avatar = ?');    params.push(avatar ?? null); }
+    if (!sets.length) return this.findById(id);
     params.push(id);
     await query(`UPDATE users SET ${sets.join(', ')} WHERE id = ?`, params);
     return this.findById(id);

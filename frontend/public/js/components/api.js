@@ -58,7 +58,7 @@ export const api = {
   // ── Attractions ───────────────────────────────────────
   attractions: {
     list:       (q = '')    => request('GET', `/attractions?${q}`),
-    adminList:  (q = '')    => request('GET', `/attractions/admin/all?${q}`),
+    adminList:  (q = '')    => request('GET', `/attractions/admin?${q}`),
     detail:     (id)        => request('GET', `/attractions/${id}`),
     categories: ()          => request('GET', '/attractions/categories'),
     cities:     ()          => request('GET', '/attractions/cities'),
@@ -101,11 +101,15 @@ export const api = {
 
   // ── Tickets ───────────────────────────────────────────
   tickets: {
-    mine:         (q = '') => request('GET',  `/tickets/mine?${q}`),
-    detail:       (id)     => request('GET',  `/tickets/${id}`),
-    byCode:       (code)   => request('GET',  `/tickets/code/${code}`),
-    validate:     (d)      => request('POST', '/tickets/validate', d),
-    regenerateQR: (id)     => request('POST', `/tickets/${id}/regenerate-qr`),
+    mine:              (q = '') => request('GET',  `/tickets?${q}`),
+    detail:            (id)     => request('GET',  `/tickets/${id}`),
+    byCode:            (code)   => request('GET',  `/tickets/code/${code}`),
+    validate:          (d)      => request('POST', '/tickets/validate', d),
+    regenerateQR:      (id)     => request('POST', `/tickets/${id}/regenerate-qr`),
+    // Admin-only
+    adminList:         (q = '') => request('GET',  `/tickets/admin/all?${q}`),
+    adminStats:        ()       => request('GET',  '/tickets/admin/stats'),
+    adminUpdateStatus: (id, d)  => request('PUT',  `/tickets/admin/${id}/status`, d),
   },
 
   // ── Customers ─────────────────────────────────────────

@@ -10,7 +10,7 @@ const customerController = require('./customerController');
 const router = express.Router();
 
 // All routes require auth + user:manage permission
-router.use(authenticate, requirePermission('user:manage'));
+router.use(authenticate, requirePermission('user.manage'));
 
 router.get('/', customerController.list);
 

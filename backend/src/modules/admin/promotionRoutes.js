@@ -3,7 +3,7 @@
  */
 const express = require('express');
 const { body, param } = require('express-validator');
-const { authenticate, requirePermission } = require('../../middleware/auth');
+const { authenticate, authorize } = require('../../middleware/auth');
 const validate = require('../../middleware/validate');
 const promotionController = require('./promotionController');
 
@@ -21,7 +21,7 @@ router.get('/', authenticate, promotionController.list);
 router.get('/:id', authenticate, promotionController.detail);
 
 router.post('/',
-  authenticate, requirePermission('attraction:manage'),
+  authenticate, authorize('owner', 'super_admin', 'admin', 'marketing'),
   [
     body('code').notEmpty().isLength({ max: 50 }),
     body('name').notEmpty().isLength({ max: 255 }),
@@ -35,14 +35,14 @@ router.post('/',
 );
 
 router.put('/:id',
-  authenticate, requirePermission('attraction:manage'),
+  authenticate, authorize('owner', 'super_admin', 'admin', 'marketing'),
   [param('id').isUUID()],
   validate,
   promotionController.update
 );
 
 router.delete('/:id',
-  authenticate, requirePermission('attraction:manage'),
+  authenticate, authorize('owner', 'super_admin', 'admin', 'marketing'),
   [param('id').isUUID()],
   validate,
   promotionController.remove

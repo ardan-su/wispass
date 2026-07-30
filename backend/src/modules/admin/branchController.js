@@ -17,11 +17,11 @@ const branchController = {
       const countParams = [];
 
       if (siteId) {
-        where += ' AND b.tourist_site_id = ?';
+        where += ' AND b.site_id = ?';
         params.push(siteId); countParams.push(siteId);
       }
       if (search) {
-        where += ' AND (b.name LIKE ? OR b.location LIKE ?)';
+        where += ' AND (b.name LIKE ? OR b.address LIKE ?)';
         params.push(`%${search}%`, `%${search}%`);
         countParams.push(`%${search}%`, `%${search}%`);
       }
@@ -34,7 +34,7 @@ const branchController = {
       const rows = await query(
         `SELECT b.*, ts.name AS site_name
          FROM branches b
-         LEFT JOIN tourist_sites ts ON ts.id = b.tourist_site_id
+         LEFT JOIN tourist_sites ts ON ts.id = b.site_id
          ${where}
          ORDER BY b.created_at DESC LIMIT ? OFFSET ?`,
         [...params, limit, offset]
@@ -50,7 +50,7 @@ const branchController = {
       const rows = await query(
         `SELECT b.*, ts.name AS site_name
          FROM branches b
-         LEFT JOIN tourist_sites ts ON ts.id = b.tourist_site_id
+         LEFT JOIN tourist_sites ts ON ts.id = b.site_id
          WHERE b.id = ? AND b.deleted_at IS NULL`,
         [req.params.id]
       );
@@ -71,21 +71,22 @@ const branchController = {
       if (!site.length) return error(res, 'Tourist site not found.', 404);
 
       const id = uuid();
+      const branchCode = `BR-${id.substring(0,8).toUpperCase()}`;
       await query(
-        `INSERT INTO branches (id, tourist_site_id, name, location, is_active, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, NOW(3), NOW(3))`,
-        [id, tourist_site_id, sanitize(name), sanitize(location || ''), is_active !== false ? 1 : 0]
+        `INSERT INTO branches (id, site_id, name, code, address, is_active)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [id, tourist_site_id, sanitize(name), branchCode, sanitize(location || ''), is_active !== false ? 1 : 0]
       );
 
       await query(
-        `INSERT INTO audit_logs (id, user_id, action, entity_type, entity_id, ip_address, created_at)
+        `INSERT INTO audit_logs (id, user_id, action, module, entity_id, ip_address, created_at)
          VALUES (?, ?, 'branch:create', 'branches', ?, ?, NOW(3))`,
         [uuid(), req.user.id, id, req.ip]
       );
 
       const rows = await query(
         `SELECT b.*, ts.name AS site_name FROM branches b
-         LEFT JOIN tourist_sites ts ON ts.id = b.tourist_site_id WHERE b.id = ?`, [id]
+         LEFT JOIN tourist_sites ts ON ts.id = b.site_id WHERE b.id = ?`, [id]
       );
       return success(res, { branch: rows[0] }, 'Branch created.', 201);
     } catch (err) { next(err); }
@@ -99,8 +100,8 @@ const branchController = {
       );
       if (!existing.length) return error(res, 'Branch not found.', 404);
 
-      const allowed = ['name', 'location', 'is_active', 'tourist_site_id'];
-      const textFields = ['name', 'location'];
+      const allowed = ['name', 'address', 'is_active', 'site_id'];
+      const textFields = ['name', 'address'];
       const sets = [];
       const params = [];
 
@@ -119,14 +120,14 @@ const branchController = {
 
       await query(`UPDATE branches SET ${sets.join(', ')} WHERE id = ?`, params);
       await query(
-        `INSERT INTO audit_logs (id, user_id, action, entity_type, entity_id, ip_address, created_at)
+        `INSERT INTO audit_logs (id, user_id, action, module, entity_id, ip_address, created_at)
          VALUES (?, ?, 'branch:update', 'branches', ?, ?, NOW(3))`,
         [uuid(), req.user.id, req.params.id, req.ip]
       );
 
       const rows = await query(
         `SELECT b.*, ts.name AS site_name FROM branches b
-         LEFT JOIN tourist_sites ts ON ts.id = b.tourist_site_id WHERE b.id = ?`, [req.params.id]
+         LEFT JOIN tourist_sites ts ON ts.id = b.site_id WHERE b.id = ?`, [req.params.id]
       );
       return success(res, { branch: rows[0] }, 'Branch updated.');
     } catch (err) { next(err); }
@@ -142,7 +143,7 @@ const branchController = {
 
       await query(`UPDATE branches SET deleted_at = NOW(3) WHERE id = ?`, [req.params.id]);
       await query(
-        `INSERT INTO audit_logs (id, user_id, action, entity_type, entity_id, ip_address, created_at)
+        `INSERT INTO audit_logs (id, user_id, action, module, entity_id, ip_address, created_at)
          VALUES (?, ?, 'branch:delete', 'branches', ?, ?, NOW(3))`,
         [uuid(), req.user.id, req.params.id, req.ip]
       );

@@ -7,10 +7,12 @@ export default {
     setPageTitle('Customer Detail');
     el.innerHTML = `<div class="page-spinner"><div class="spinner"></div></div>`;
     try {
-      const { user, bookingSummary } = await api.customers.detail(params.id);
+      const { customer, summary } = await api.customers.detail(params.id);
+      const user = customer;
       setPageTitle(user.full_name || user.username);
-      const totalSpend = bookingSummary.reduce((s, r) => r.status === 'completed' ? s + parseFloat(r.total) : s, 0);
-      const totalBookings = bookingSummary.reduce((s, r) => s + parseInt(r.count), 0);
+      const totalSpend    = parseFloat(summary?.total_spent   || 0);
+      const totalBookings = parseInt(summary?.total_bookings  || 0);
+      const bookingSummary = []; // kept for template compat — summary is a single object not array
 
       el.innerHTML = `
         <div class="page-header">

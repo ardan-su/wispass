@@ -51,7 +51,7 @@ const notificationController = {
   async markRead(req, res, next) {
     try {
       const result = await query(
-        `UPDATE notifications SET is_read = 1, read_at = NOW(3) WHERE id = ? AND user_id = ?`,
+        `UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?`,
         [req.params.id, req.user.id]
       );
       if (result.affectedRows === 0) return error(res, 'Notification not found.', 404);
@@ -63,7 +63,7 @@ const notificationController = {
   async markAllRead(req, res, next) {
     try {
       await query(
-        `UPDATE notifications SET is_read = 1, read_at = NOW(3) WHERE user_id = ? AND is_read = 0`,
+        `UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0`,
         [req.user.id]
       );
       return success(res, {}, 'All notifications marked as read.');

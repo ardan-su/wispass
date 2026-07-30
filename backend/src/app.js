@@ -60,7 +60,7 @@ app.use(morgan('combined', {
 
 // ── Static files ──────────────────────────────────────────────────────────────
 const UPLOAD_DIR   = path.join(__dirname, '../../uploads');
-const FRONTEND_DIR = path.join(__dirname, '../../../frontend/public');
+const FRONTEND_DIR = path.join(__dirname, '../../frontend/public');
 
 app.use('/uploads', express.static(UPLOAD_DIR));
 app.use(express.static(FRONTEND_DIR));

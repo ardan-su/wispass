@@ -47,7 +47,7 @@ const userController = {
 
       // Audit log
       await query(
-        `INSERT INTO audit_logs (id, user_id, action, entity_type, entity_id, ip_address, created_at)
+        `INSERT INTO audit_logs (id, user_id, action, module, entity_id, ip_address, created_at)
          VALUES (?, ?, 'user:update', 'users', ?, ?, NOW(3))`,
         [uuid(), req.user.id, req.params.id, req.ip]
       );
@@ -65,7 +65,7 @@ const userController = {
 
       await UserModel.setActive(req.params.id, true);
       await query(
-        `INSERT INTO audit_logs (id, user_id, action, entity_type, entity_id, ip_address, created_at)
+        `INSERT INTO audit_logs (id, user_id, action, module, entity_id, ip_address, created_at)
          VALUES (?, ?, 'user:activate', 'users', ?, ?, NOW(3))`,
         [uuid(), req.user.id, req.params.id, req.ip]
       );
@@ -83,7 +83,7 @@ const userController = {
 
       await UserModel.setActive(req.params.id, false);
       await query(
-        `INSERT INTO audit_logs (id, user_id, action, entity_type, entity_id, ip_address, created_at)
+        `INSERT INTO audit_logs (id, user_id, action, module, entity_id, ip_address, created_at)
          VALUES (?, ?, 'user:deactivate', 'users', ?, ?, NOW(3))`,
         [uuid(), req.user.id, req.params.id, req.ip]
       );

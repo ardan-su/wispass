@@ -3,14 +3,14 @@
  */
 const express = require('express');
 const { body, param } = require('express-validator');
-const { authenticate, requirePermission } = require('../../middleware/auth');
+const { authenticate, authorize } = require('../../middleware/auth');
 const validate = require('../../middleware/validate');
 const settingsController = require('./settingsController');
 
 const router = express.Router();
 
 // All settings routes require auth + settings:manage permission
-router.use(authenticate, requirePermission('settings:manage'));
+router.use(authenticate, authorize('owner', 'super_admin', 'admin'));
 
 router.get('/', settingsController.listAll);
 

@@ -228,7 +228,7 @@ export default {
       fd.append('isFeatured',  form.isFeatured.checked ? 'true' : 'false');
       fd.append('isActive',    form.isActive.checked   ? 'true' : 'false');
       const coverFile = document.getElementById('cover-file')?.files[0];
-      if (coverFile) fd.append('coverImage', coverFile);
+      if (coverFile) fd.append('cover', coverFile);
 
       const btn = document.getElementById('save-btn');
       btn.classList.add('btn-loading'); btn.disabled = true;

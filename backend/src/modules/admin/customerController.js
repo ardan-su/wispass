@@ -104,7 +104,7 @@ const customerController = {
       }
 
       await query(
-        `INSERT INTO audit_logs (id, user_id, action, entity_type, entity_id, ip_address, created_at)
+        `INSERT INTO audit_logs (id, user_id, action, module, entity_id, ip_address, created_at)
          VALUES (?, ?, 'customer:update', 'users', ?, ?, NOW(3))`,
         [uuid(), req.user.id, req.params.id, req.ip]
       );
@@ -128,7 +128,7 @@ const customerController = {
       );
       if (result.affectedRows === 0) return error(res, 'Customer not found.', 404);
       await query(
-        `INSERT INTO audit_logs (id, user_id, action, entity_type, entity_id, ip_address, created_at)
+        `INSERT INTO audit_logs (id, user_id, action, module, entity_id, ip_address, created_at)
          VALUES (?, ?, 'customer:activate', 'users', ?, ?, NOW(3))`,
         [uuid(), req.user.id, req.params.id, req.ip]
       );
@@ -147,7 +147,7 @@ const customerController = {
       );
       if (result.affectedRows === 0) return error(res, 'Customer not found.', 404);
       await query(
-        `INSERT INTO audit_logs (id, user_id, action, entity_type, entity_id, ip_address, created_at)
+        `INSERT INTO audit_logs (id, user_id, action, module, entity_id, ip_address, created_at)
          VALUES (?, ?, 'customer:deactivate', 'users', ?, ?, NOW(3))`,
         [uuid(), req.user.id, req.params.id, req.ip]
       );

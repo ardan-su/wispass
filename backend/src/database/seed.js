@@ -230,6 +230,93 @@ async function seed() {
     );
     console.log('✓ Gate Officer: gate@wisatapass.local / gate123');
 
+    // ── Role Permissions ───────────────────────────────────────────────────────
+    console.log('\n  → Seeding role_permissions…');
+    const [perms] = await conn.query('SELECT id, name FROM permissions');
+    const permMap = {};
+    perms.forEach(p => { permMap[p.name] = p.id; });
+
+    // Owner gets all permissions
+    const ownerRoleId = roleMap.owner;
+    for (const pId of Object.values(permMap)) {
+      await conn.execute(
+        `INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES (?, ?)`,
+        [ownerRoleId, pId]
+      );
+    }
+
+    // Super admin gets all permissions
+    for (const pId of Object.values(permMap)) {
+      await conn.execute(
+        `INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES (?, ?)`,
+        [roleMap.super_admin, pId]
+      );
+    }
+
+    // Admin gets most permissions except user.manage for safety
+    const adminPerms = ['qr.generate','qr.view','qr.deactivate','qr.delete','ticket.view','ticket.manage','report.view','report.export','dashboard.view','site.manage'];
+    for (const pName of adminPerms) {
+      if (permMap[pName]) {
+        await conn.execute(
+          `INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES (?, ?)`,
+          [roleMap.admin, permMap[pName]]
+        );
+      }
+    }
+    // Also give admin user.manage
+    if (permMap['user.manage']) {
+      await conn.execute(
+        `INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES (?, ?)`,
+        [roleMap.admin, permMap['user.manage']]
+      );
+    }
+
+    // Gate officer: scan only
+    const gatePerms = ['qr.scan','qr.view','ticket.view','dashboard.view'];
+    for (const pName of gatePerms) {
+      if (permMap[pName]) {
+        await conn.execute(
+          `INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES (?, ?)`,
+          [roleMap.gate_officer, permMap[pName]]
+        );
+      }
+    }
+
+    // Cashier
+    const cashierPerms = ['ticket.view','ticket.manage','dashboard.view','report.view'];
+    for (const pName of cashierPerms) {
+      if (permMap[pName]) {
+        await conn.execute(
+          `INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES (?, ?)`,
+          [roleMap.cashier, permMap[pName]]
+        );
+      }
+    }
+
+    // Marketing
+    const marketingPerms = ['site.manage','report.view','report.export','dashboard.view','qr.view'];
+    for (const pName of marketingPerms) {
+      if (permMap[pName]) {
+        await conn.execute(
+          `INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES (?, ?)`,
+          [roleMap.marketing, permMap[pName]]
+        );
+      }
+    }
+
+    // Viewer
+    const viewerPerms = ['dashboard.view','report.view','qr.view','ticket.view'];
+    for (const pName of viewerPerms) {
+      if (permMap[pName]) {
+        await conn.execute(
+          `INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES (?, ?)`,
+          [roleMap.viewer, permMap[pName]]
+        );
+      }
+    }
+
+    console.log('     ✓ role_permissions seeded');
+
     // ── Sample customer ───────────────────────────────────────────────────────
     const custPwHash  = await bcrypt.hash('customer123', ROUNDS);
     const custUserId  = uuid();
