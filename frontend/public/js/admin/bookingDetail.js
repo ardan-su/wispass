@@ -106,22 +106,22 @@ export default {
 
       document.getElementById('confirm-btn')?.addEventListener('click', async () => {
         if (!await window.modal.confirm({ title:'Confirm booking?', okText:'Confirm', okClass:'btn-success', icon:'✅' })) return;
-        await api.bookings.confirm(booking.id); window.toast.success('Booking confirmed!'); window.dispatchEvent(new HashChangeEvent('hashchange'));
+        await api.bookings.confirm(booking.id); window.toast.success('Booking confirmed!'); window.location.hash = window.location.hash;
       });
       document.getElementById('cancel-btn')?.addEventListener('click', async () => {
         if (!await window.modal.confirm({ title:'Cancel booking?', message:'All tickets will be cancelled.', okText:'Cancel Booking', okClass:'btn-danger' })) return;
-        await api.bookings.cancel(booking.id); window.toast.success('Booking cancelled.'); window.dispatchEvent(new HashChangeEvent('hashchange'));
+        await api.bookings.cancel(booking.id); window.toast.success('Booking cancelled.'); window.location.hash = window.location.hash;
       });
       document.getElementById('complete-btn')?.addEventListener('click', async () => {
-        await api.bookings.complete(booking.id); window.toast.success('Marked as completed.'); window.dispatchEvent(new HashChangeEvent('hashchange'));
+        await api.bookings.complete(booking.id); window.toast.success('Marked as completed.'); window.location.hash = window.location.hash;
       });
       document.querySelectorAll('.confirm-pay-btn').forEach(btn => btn.addEventListener('click', async () => {
         if (!await window.modal.confirm({ title:'Confirm payment?', okText:'Confirm', okClass:'btn-success', icon:'✅' })) return;
-        await api.payments.confirm(btn.dataset.pid); window.toast.success('Payment confirmed!'); window.dispatchEvent(new HashChangeEvent('hashchange'));
+        await api.payments.confirm(btn.dataset.pid); window.toast.success('Payment confirmed!'); window.location.hash = window.location.hash;
       }));
       document.querySelectorAll('.reject-pay-btn').forEach(btn => btn.addEventListener('click', async () => {
         if (!await window.modal.confirm({ title:'Reject payment?', okText:'Reject', okClass:'btn-danger' })) return;
-        await api.payments.reject(btn.dataset.pid); window.toast.warning('Payment rejected.'); window.dispatchEvent(new HashChangeEvent('hashchange'));
+        await api.payments.reject(btn.dataset.pid); window.toast.warning('Payment rejected.'); window.location.hash = window.location.hash;
       }));
     } catch (err) {
       el.innerHTML = emptyStateEl(err.message);

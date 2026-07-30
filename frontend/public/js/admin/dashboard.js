@@ -72,11 +72,25 @@ export default {
       </div>`;
 
     document.getElementById('refresh-btn').addEventListener('click', () => this.loadData());
-    window.addEventListener('dashboard:refresh', () => this.loadData());
+
+    // Remove any previous listener before adding a new one (prevents stale-listener crash)
+    if (this._refreshHandler) {
+      window.removeEventListener('dashboard:refresh', this._refreshHandler);
+    }
+    // Disconnect any previous ResizeObserver
+    if (this._resizeObs) {
+      this._resizeObs.disconnect();
+      this._resizeObs = null;
+    }
+    this._refreshHandler = () => this.loadData();
+    window.addEventListener('dashboard:refresh', this._refreshHandler);
+
     await this.loadData();
   },
 
   async loadData() {
+    // Bail out if we've navigated away from the dashboard
+    if (!document.getElementById('stats-grid')) return;
     try {
       const data = await api.dashboard.admin();
       this.renderStats(data.stats);
@@ -90,6 +104,7 @@ export default {
   },
 
   renderStats(s) {
+    if (!document.getElementById('stats-grid')) return;
     const cards = [
       { icon: 'blue',   svg: mapSvg,     label: 'Total Attractions', value: s.totalAttractions, sub: 'Active attractions' },
       { icon: 'purple', svg: usersSvg,   label: 'Total Customers',   value: s.totalCustomers,   sub: 'Registered users' },
@@ -118,6 +133,7 @@ export default {
 
   renderRecentBookings(bookings) {
     const el = document.getElementById('recent-bookings');
+    if (!el) return;
     if (!bookings.length) {
       el.innerHTML = `<div class="empty-state" style="padding:28px"><span class="empty-icon">📋</span><div class="empty-title">No bookings yet</div></div>`;
       return;
@@ -137,6 +153,7 @@ export default {
 
   renderTopAttractions(list) {
     const el = document.getElementById('top-attractions');
+    if (!el) return;
     if (!list.length) {
       el.innerHTML = `<div class="empty-state" style="padding:28px"><span class="empty-icon">🏝️</span><div class="empty-title">No data yet</div></div>`;
       return;

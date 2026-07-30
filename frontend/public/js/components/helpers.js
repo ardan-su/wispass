@@ -8,9 +8,12 @@ export function formatIDR(amount) {
 /** Format a date string */
 export function formatDate(d, opts = {}) {
   if (!d) return '—';
-  return new Intl.DateTimeFormat('id-ID', {
-    day: '2-digit', month: 'long', year: 'numeric', ...opts,
-  }).format(new Date(d));
+  // Intl.DateTimeFormat throws if dateStyle/timeStyle is mixed with day/month/year components.
+  // When caller passes dateStyle or timeStyle, use those options alone.
+  const useOpts = ('dateStyle' in opts || 'timeStyle' in opts)
+    ? opts
+    : { day: '2-digit', month: 'long', year: 'numeric', ...opts };
+  return new Intl.DateTimeFormat('id-ID', useOpts).format(new Date(d));
 }
 
 /** Relative time */

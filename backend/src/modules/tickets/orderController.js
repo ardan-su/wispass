@@ -211,6 +211,8 @@ const orderController = {
 
       const updated = await OrderModel.updateStatus(order.id, 'confirmed');
       await OrderModel.updatePaymentStatus(order.id, 'paid');
+      // Also update the payments table row so bookingDetail shows consistent status
+      await query(`UPDATE payments SET status = 'paid', paid_at = NOW() WHERE order_id = ? AND status = 'pending'`, [order.id]);
       socketSvc.onBookingConfirmed(updated);
       sendNotification(order.user_id, 'booking_confirmed', 'Booking Confirmed',
         `Booking ${order.booking_code} has been confirmed.`);
