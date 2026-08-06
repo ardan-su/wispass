@@ -22,9 +22,20 @@ async function bootstrap() {
 
   // 2 – Create HTTP + Socket.IO server
   const server = http.createServer(app);
+  const _wsOrigins = (process.env.FRONTEND_ORIGIN || '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+
   const io = new Server(server, {
     cors: {
-      origin:      process.env.FRONTEND_ORIGIN || '*',
+      origin: (origin, cb) => {
+        if (!origin) return cb(null, true);
+        if (!_wsOrigins.length || _wsOrigins.includes('*') || _wsOrigins.includes(origin)) {
+          return cb(null, true);
+        }
+        cb(new Error(`WS CORS: origin ${origin} not allowed`));
+      },
       methods:     ['GET','POST'],
       credentials: true,
     },

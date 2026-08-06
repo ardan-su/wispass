@@ -2,6 +2,21 @@
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
+  <!-- Runtime config: auto-detects backend URL based on hostname -->
+  <script>
+    (function () {
+      var hostname = window.location.hostname;
+      var apiBase = '';
+      // Production: frontend on smarticket.projects-me.id → backend on smarticket-api.projects-me.id
+      if (hostname === 'smarticket.projects-me.id') {
+        apiBase = 'https://smarticket-api.projects-me.id';
+      }
+      // Any other custom production domain: add more hostname checks here
+      // If already set externally (e.g. injected by server), preserve it
+      window.APP_CONFIG = window.APP_CONFIG || {};
+      window.APP_CONFIG.API_BASE_URL = window.APP_CONFIG.API_BASE_URL || apiBase;
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>WisataPass – Tourist Attraction Tickets</title>
 

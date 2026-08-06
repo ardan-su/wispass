@@ -7,7 +7,9 @@ export default {
     setPageTitle('Profile');
     el.innerHTML = `<div class="page-spinner" style="min-height:300px"><div class="spinner"></div></div>`;
     try {
-      const { user } = await api.auth.me();
+      const res = await api.auth.me();
+      const user = res.user ?? res; // handle both { user } and flat response shapes
+      if (!user || !user.email) throw new Error('Could not load profile. Please log in again.');
 
       el.innerHTML = `
         <div class="page-header">

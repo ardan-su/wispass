@@ -48,11 +48,7 @@ export default {
           Don't have an account? <a href="#/register">Create one</a>
         </div>
 
-        <div class="auth-demo-box">
-          <strong>Demo accounts</strong><br>
-          Admin: admin@wisatapass.local / admin123<br>
-          Customer: john@example.com / customer123
-        </div>
+        
       </div>
     </div>`;
 
@@ -78,13 +74,18 @@ export default {
 
       try {
         const res = await api.auth.login({ email, password });
-        auth.save(res.token, res.user);
+        // Normalize backend snake_case to camelCase before storing
+        const user = {
+          ...res.user,
+          fullName: res.user.fullName || res.user.full_name || res.user.username,
+        };
+        auth.save(res.accessToken || res.token, user);
 
         const { socket } = await import('../components/socket.js');
-        socket.connect(res.token);
+        socket.connect(res.accessToken || res.token);
 
-        window.toast?.success('Welcome back!', res.user.fullName || res.user.username);
-        window.location.hash = res.user.role === 'admin' ? '#/admin' : '#/';
+        window.toast?.success('Welcome back!', user.fullName);
+        window.location.hash = user.role === 'customer' ? '#/' : '#/admin';
       } catch (err) {
         formErr.textContent = err.message;
         formErr.classList.remove('hidden');

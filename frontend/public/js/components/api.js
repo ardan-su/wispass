@@ -3,7 +3,9 @@
  */
 import { auth } from './auth.js';
 
-const BASE = '/api';
+// Use explicit backend base URL when frontend and backend are on different domains.
+// Set window.APP_CONFIG.API_BASE_URL = 'https://smarticket-api.projects-me.id' in production.
+const BASE = `${window.APP_CONFIG?.API_BASE_URL || ''}/api`;
 
 async function request(method, path, data = null, isFormData = false) {
   const token = auth.getToken();

@@ -1,10 +1,22 @@
+# Environment files — never commit secrets
+backend/.env
+backend/.env.production
+frontend/public/config.production.js
+
+# Node modules
 node_modules/
-.env
-uploads/attractions/*.jpg
-uploads/attractions/*.png
-uploads/attractions/*.jpeg
-uploads/avatars/*.jpg
-uploads/avatars/*.png
-uploads/avatars/*.jpeg
+backend/node_modules/
+
+# Logs
+backend/logs/
 *.log
+
+# Uploads (user-generated content)
+backend/uploads/avatars/*
+backend/uploads/proofs/*
+!backend/uploads/avatars/.gitkeep
+!backend/uploads/proofs/.gitkeep
+
+# OS files
 .DS_Store
+Thumbs.db

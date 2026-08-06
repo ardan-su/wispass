@@ -17,8 +17,21 @@ const app = express();
 
 // ── Security & Rate Limiting ──────────────────────────────────────────────────
 app.use(helmet({ contentSecurityPolicy: false }));
+// Allow multiple origins: development localhost + production frontend domain
+const _allowedOrigins = (process.env.FRONTEND_ORIGIN || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+
 app.use(cors({
-  origin:      process.env.FRONTEND_ORIGIN || '*',
+  origin: (origin, cb) => {
+    // Allow requests with no origin (server-to-server, curl, Postman)
+    if (!origin) return cb(null, true);
+    if (!_allowedOrigins.length || _allowedOrigins.includes('*') || _allowedOrigins.includes(origin)) {
+      return cb(null, true);
+    }
+    cb(new Error(`CORS: origin ${origin} not allowed`));
+  },
   credentials: true,
   methods:     ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
 }));

@@ -40,19 +40,24 @@ export default {
 
     try {
       const data = await api.dashboard.customer();
+      // Defensive defaults — guard against undefined fields if API response shape varies
+      const upcomingTickets = data.upcomingTickets ?? [];
+      const recentBookings  = data.recentBookings  ?? [];
+      const totalSpend      = data.totalSpend       ?? 0;
+      const unreadNotifications = data.unreadNotifications ?? 0;
       document.getElementById('dashboard-content').innerHTML = `
         <div class="stat-grid" style="margin-bottom:20px">
           <div class="stat-card">
             <div class="stat-icon blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg></div>
-            <div class="stat-info"><div class="stat-label">Active Tickets</div><div class="stat-value">${data.upcomingTickets.length}</div><div class="stat-sub">Upcoming visits</div></div>
+            <div class="stat-info"><div class="stat-label">Active Tickets</div><div class="stat-value">${upcomingTickets.length}</div><div class="stat-sub">Upcoming visits</div></div>
           </div>
           <div class="stat-card">
             <div class="stat-icon green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
-            <div class="stat-info"><div class="stat-label">Total Spent</div><div class="stat-value" style="font-size:1.1rem">${formatIDR(data.totalSpend)}</div></div>
+            <div class="stat-info"><div class="stat-label">Total Spent</div><div class="stat-value" style="font-size:1.1rem">${formatIDR(totalSpend)}</div></div>
           </div>
           <div class="stat-card">
             <div class="stat-icon yellow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></div>
-            <div class="stat-info"><div class="stat-label">Unread Alerts</div><div class="stat-value">${data.unreadNotifications}</div></div>
+            <div class="stat-info"><div class="stat-label">Unread Alerts</div><div class="stat-value">${unreadNotifications}</div></div>
           </div>
         </div>
 
@@ -62,7 +67,7 @@ export default {
               <span class="card-title">Upcoming Visits</span>
               <a href="#/my-tickets" class="btn btn-ghost btn-sm" style="color:var(--accent)">View all →</a>
             </div>
-            ${data.upcomingTickets.length ? data.upcomingTickets.map(t => `
+            ${upcomingTickets.length ? upcomingTickets.map(t => `
               <a href="#/my-tickets" style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-subtle);text-decoration:none">
                 <div style="width:40px;height:40px;border-radius:var(--radius);background:var(--accent-subtle);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">🎡</div>
                 <div style="flex:1;min-width:0">
@@ -83,7 +88,7 @@ export default {
               <span class="card-title">Recent Bookings</span>
               <a href="#/my-bookings" class="btn btn-ghost btn-sm" style="color:var(--accent)">View all →</a>
             </div>
-            ${data.recentBookings.length ? data.recentBookings.map(b => `
+            ${recentBookings.length ? recentBookings.map(b => `
               <a href="#/booking/${b.id}" style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-subtle);text-decoration:none">
                 <div style="flex:1;min-width:0">
                   <div style="font-size:.875rem;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b.attraction_name}</div>
